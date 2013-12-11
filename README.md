@@ -1,4 +1,5 @@
 GothonWEB
 =========
 
-Final Exam excerise for Learn Python the Hard Way Zed Shaw - http://learnpythonthehardway.org
+Exercise 52 Final Exam for Learn Python the Hard Way by Zed Shaw
+http://learnpythonthehardway.org
