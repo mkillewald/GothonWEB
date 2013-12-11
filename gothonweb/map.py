@@ -5,6 +5,8 @@ class Room(object):
     def __init__(self, name, description):
         self.name = name
         self.description = description
+        self.unmodified_description = None
+        self.mode = None
         self.paths = {}
         
     def go(self, direction):
@@ -12,6 +14,9 @@ class Room(object):
         
     def add_paths(self, paths):
         self.paths.update(paths)
+
+    def update_description(self, description):
+        self.description = description
         
 central_corridor = Room("Central Corridor",
 """
@@ -40,7 +45,7 @@ Do you choose to shoot!, dodge! or tell a joke?
 """
 )
 
-central_corridor_shoot = Room('Death', 
+central_corridor_shoot = Room('Shoot, you died!', 
 """
 Quick on the draw you yank out your blaster and fire it at the Gothon.
 His clown costume is flowing and moving around his body, which throws
@@ -50,8 +55,9 @@ makes him fly into an insane rage and blast you repeatedly in the face until
 you are dead.  Then he eats you.
 """
 )
+central_corridor_shoot.mode = "end"
 
-central_corridor_dodge = Room("Death", 
+central_corridor_dodge = Room("Sorry, you died!", 
 """
 Like a world class boxer you dodge, weave, slip and slide right
 as the Gothon's blaster cranks a laser past your head.
@@ -61,6 +67,7 @@ You wake up shortly after only to die as the Gothon stomps on
 your head and eats you.
 """
 )
+central_corridor_dodge.mode = "end"
 
 laser_weapon_armory = Room("Laser Weapon Armory",
 """
@@ -81,7 +88,7 @@ get the bomb.  The code is 3 digits.
 """
 )
 
-laser_weapon_armory_death = Room("Death",
+laser_weapon_armory_death = Room("Sorry, you died!",
 """
 The lock buzzes one last time and then you hear a sickening
 melting sound as the mechanism is fused together.
@@ -89,6 +96,15 @@ You decide to sit there, and finally the Gothons blow up the
 ship from their ship and you die.
 """
 )
+laser_weapon_armory_death.mode = "end"
+
+# Super easy help for testing only, would be silly to use in production.
+laser_weapon_armory_help = Room(laser_weapon_armory.name, laser_weapon_armory.description + 
+"""
+Pick a 3 digit number betweem %s and %s. 
+"""
+)
+laser_weapon_armory_help.unmodified_description = laser_weapon_armory_help.description
 
 the_bridge = Room("The Bridge",
 """
@@ -116,7 +132,7 @@ Do you choose to slowly place or throw the bomb?
 """
 )
 
-the_bridge_death = Room("Death",
+the_bridge_death = Room("Sorry, you died!",
 """
 In a panic you throw the bomb at the group of Gothons
 and make a leap for the door.  Right as you drop it a
@@ -126,6 +142,7 @@ the bomb. You die knowing they will probably blow up when
 it goes off.
 """
 )
+the_bridge_death.mode = "end"
 
 escape_pod = Room("Escape Pod",
 """
@@ -147,76 +164,82 @@ but you don't have time to look.  There's 5 pods, which one
 do you take?
 """)
 
-the_end_winner = Room("The End",
+# Super easy help for testing only, would be silly to use in production.
+escape_pod_help = Room(escape_pod.name, escape_pod.description +
 """
-You jump into a random pod and hit the eject button.
+Hint: Your Mother's favorite number is %s.
+"""
+)
+escape_pod_help.unmodified_description = escape_pod_help.description
+
+the_end_winner = Room("Congratulations, YOU WIN!",
+"""
+You jump into pod %s and hit the eject button.
 Looks like you picked the right one! The pod easily 
 slides out into space heading to the planet below. 
 As it flies to the planet, you look back and see your
 ship implode then explode like a bright star, taking
 out the Gothon ship at the same time.
 
-Congratulations, YOU WIN!
+The End
 """
 )
+the_end_winner.mode = "end"
+the_end_winner.unmodified_description = the_end_winner.description
 
-the_end_loser = Room("The End",
+the_end_loser = Room("Missed it by that much..",
 """
 You jump into a random pod and hit the eject button.
 The pod escapes out into the void of space, then
 implodes as the hull ruptures, crushing your body
 into jam jelly. 
 
-So sad after making it this far, you lose.
+The End
 """
 )
+the_end_loser.mode = "end"
 
+escape_pod.add_paths({
+    'help': escape_pod_help,
+    '*': the_end_loser
+})
+
+the_bridge.add_paths({
+    'help': the_bridge_help,
+    'throw the bomb': the_bridge_death,
+    'slowly place the bomb': escape_pod,
+    '*': the_bridge_try_again
+})
+
+laser_weapon_armory.add_paths({
+    'help': laser_weapon_armory_help,
+    '*': laser_weapon_armory_death
+})
+
+central_corridor.add_paths({
+    'help': central_corridor_help,
+    'shoot!': central_corridor_shoot,
+    'dodge!': central_corridor_dodge,
+    'tell a joke': laser_weapon_armory,
+    '*': central_corridor_try_again
+})
 
 def START():
     good_pod = "%d" % randint(1,5)
-
-    # Super easy help for testing only, would be silly to use in production.
-    escape_pod_help = Room(
-        escape_pod.name, 
-        escape_pod.description +
-            "\nHint: Your favorite number is %s." % good_pod
-    )
-
-    escape_pod.add_paths({
-        'help': escape_pod_help,
-        good_pod: the_end_winner,
-        '*': the_end_loser
-    })
-
-    the_bridge.add_paths({
-        'help': the_bridge_help,
-        'throw the bomb': the_bridge_death,
-        'slowly place the bomb': escape_pod,
-        '*': the_bridge_try_again
-    })
-
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
 
-    # Super easy help for testing only, would be silly to use in production.
-    laser_weapon_armory_help = Room(
-        laser_weapon_armory.name,
-        laser_weapon_armory.description + 
-            "\nPick a 3 digit number betweem %d and %d." % (int(lock_code) - 1, int(lock_code) + 1)
+    # Needed a way to replace %s placeholder in a Room description multiple times
+    # without losing the placeholder after each run through the game.  
+    the_end_winner.update_description(the_end_winner.unmodified_description % good_pod)    
+    escape_pod_help.update_description(escape_pod_help.unmodified_description % good_pod)
+
+    # Super easy help for testing only, would be silly to use in production.  
+    laser_weapon_armory_help.update_description(
+        laser_weapon_armory_help.unmodified_description  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
     )
 
-    laser_weapon_armory.add_paths({
-        'help': laser_weapon_armory_help,
-        lock_code: the_bridge,
-        '*': laser_weapon_armory_death
-    })
-
-    central_corridor.add_paths({
-        'help': central_corridor_help,
-        'shoot!': central_corridor_shoot,
-        'dodge!': central_corridor_dodge,
-        'tell a joke': laser_weapon_armory,
-        '*': central_corridor_try_again
-    })
+    escape_pod.add_paths({good_pod: the_end_winner})
+    laser_weapon_armory.add_paths({lock_code: the_bridge})
 
     central_corridor_help.paths = central_corridor.paths
     central_corridor_try_again.paths = central_corridor.paths
