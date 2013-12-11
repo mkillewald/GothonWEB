@@ -23,7 +23,7 @@ render = web.template.render('templates/', base="layout")
 class Index(object):
     def GET(self):
         # this is used to "setup" the session with starting values
-        session.room = map.START
+        session.room = map.START()
         web.seeother("/game")
 
 
@@ -39,8 +39,10 @@ class GameEngine(object):
     def POST(self):
         form = web.input(action=None)
 
-        # there is a bug here, can you fix it? # I think I did?!
+        # there is a bug here, can you fix it? -Zed Shaw
+        # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
         if session.room and form.action:
+            # When form input is not a defined path key, use the catch all path '*'
             if session.room.paths.get(form.action) == None:
                 session.room = session.room.go('*')
             else:

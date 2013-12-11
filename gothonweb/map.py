@@ -1,3 +1,5 @@
+from random import randint
+
 class Room(object):
 
     def __init__(self, name, description):
@@ -79,13 +81,6 @@ get the bomb.  The code is 3 digits.
 """
 )
 
-laser_weapon_armory_help = Room(laser_weapon_armory.name, laser_weapon_armory.description +
-"""
-You have a total of 10 tries at guesing the 3 digit lock code.
-Good luck!
-"""
-)
-
 laser_weapon_armory_death = Room("Death",
 """
 The lock buzzes one last time and then you hear a sickening
@@ -152,23 +147,18 @@ but you don't have time to look.  There's 5 pods, which one
 do you take?
 """)
 
-escape_pod_help = Room(escape_pod.name, escape_pod.description +
-"""
-Choose one the five numbered escape pods 1 through 5.
-"""
-)
-
 the_end_winner = Room("The End",
 """
-You jump into pod 2 and hit the eject button.
-The pod easily slides out into space heading to
-the planet below.  As it flies to the planet, you look
-back and see your ship implode then explode like a
-bright star, taking out the Gothon ship at the same
-time. 
+You jump into a random pod and hit the eject button.
+Looks like you picked the right one! The pod easily 
+slides out into space heading to the planet below. 
+As it flies to the planet, you look back and see your
+ship implode then explode like a bright star, taking
+out the Gothon ship at the same time.
 
-Congratulations, you won!
-""")
+Congratulations, YOU WIN!
+"""
+)
 
 the_end_loser = Room("The End",
 """
@@ -181,40 +171,59 @@ So sad after making it this far, you lose.
 """
 )
 
-generic_death = Room("Death", "You died.")
 
-escape_pod.add_paths({
-    'help': escape_pod_help,
-    '2': the_end_winner,
-    '*': the_end_loser
-})
+def START():
+    good_pod = "%d" % randint(1,5)
 
-the_bridge.add_paths({
-    'help': the_bridge_help,
-    'throw the bomb': the_bridge_death,
-    'slowly place the bomb': escape_pod,
-    '*': the_bridge_try_again
-})
+    # Super easy help for testing only, would be silly to use in production.
+    escape_pod_help = Room(
+        escape_pod.name, 
+        escape_pod.description +
+            "\nHint: Your favorite number is %s." % good_pod
+    )
 
-laser_weapon_armory.add_paths({
-    'help': laser_weapon_armory_help,
-    '123': the_bridge,
-    '*': laser_weapon_armory_death
-})
+    escape_pod.add_paths({
+        'help': escape_pod_help,
+        good_pod: the_end_winner,
+        '*': the_end_loser
+    })
 
-central_corridor.add_paths({
-    'help': central_corridor_help,
-    'shoot!': central_corridor_shoot,
-    'dodge!': central_corridor_dodge,
-    'tell a joke': laser_weapon_armory,
-    '*': central_corridor_try_again
-})
+    the_bridge.add_paths({
+        'help': the_bridge_help,
+        'throw the bomb': the_bridge_death,
+        'slowly place the bomb': escape_pod,
+        '*': the_bridge_try_again
+    })
 
-central_corridor_help.paths = central_corridor.paths
-central_corridor_try_again.paths = central_corridor.paths
-laser_weapon_armory_help.paths = laser_weapon_armory.paths
-the_bridge_help.paths = the_bridge.paths
-the_bridge_try_again.paths = the_bridge.paths
-escape_pod_help.paths = escape_pod.paths
+    lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
 
-START = central_corridor
+    # Super easy help for testing only, would be silly to use in production.
+    laser_weapon_armory_help = Room(
+        laser_weapon_armory.name,
+        laser_weapon_armory.description + 
+            "\nPick a 3 digit number betweem %d and %d." % (int(lock_code) - 1, int(lock_code) + 1)
+    )
+
+    laser_weapon_armory.add_paths({
+        'help': laser_weapon_armory_help,
+        lock_code: the_bridge,
+        '*': laser_weapon_armory_death
+    })
+
+    central_corridor.add_paths({
+        'help': central_corridor_help,
+        'shoot!': central_corridor_shoot,
+        'dodge!': central_corridor_dodge,
+        'tell a joke': laser_weapon_armory,
+        '*': central_corridor_try_again
+    })
+
+    central_corridor_help.paths = central_corridor.paths
+    central_corridor_try_again.paths = central_corridor.paths
+    laser_weapon_armory_help.paths = laser_weapon_armory.paths
+    the_bridge_help.paths = the_bridge.paths
+    the_bridge_try_again.paths = the_bridge.paths
+    escape_pod_help.paths = escape_pod.paths
+
+    return central_corridor
+
