@@ -33,8 +33,7 @@ class GameEngine(object):
         if session.room:
             return render.show_room(room=session.room)
         else:
-            # why is there here? do you need it? 
-            return render.you_died()
+            return render.error()
 
     def POST(self):
         form = web.input(action=None)
@@ -42,10 +41,23 @@ class GameEngine(object):
         # there is a bug here, can you fix it? -Zed Shaw
         # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
         if session.room and form.action:
-            # When form input is not a defined path key, use the catch all path '*'
-            if session.room.paths.get(form.action) == None:
-                session.room = session.room.go('*')
+            if form.action == "help":
+                session.room.show_help = True
+                session.room.show_try_again = False
+                session.room.go(session.room)
+            elif session.room.paths.get(form.action) == None:
+                # When form input is not a defined path, use the catch all path '*' if one exists
+                if session.room.paths.get('*') == None:
+                    session.room.show_try_again = True
+                    session.room.show_help = False
+                    session.room.go(session.room)
+                else:
+                    session.room.show_try_again = False
+                    session.room.show_help = False
+                    session.room = session.room.go('*')
             else:
+                session.room.show_try_again = False
+                session.room.show_help = False
                 session.room = session.room.go(form.action)
 
         web.seeother("/game")

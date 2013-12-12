@@ -6,7 +6,17 @@ $def with (room)
 $room.description
 </pre>
 
-$if room.mode == "end":
+$if room.show_help:
+    <pre>
+    $room.help
+    </pre>
+
+$if room.show_try_again:
+    <pre>
+    $room.try_again
+    </pre>
+
+$if room.end:
     <p><a href="/">Play Again?</a></p>
 $else:
     <p>
