@@ -42,22 +42,29 @@ class GameEngine(object):
         # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
         if session.room and form.action:
             if form.action == "help":
+                # If 'help' was input by user, redisplay room with help text.
                 session.room.show_help = True
                 session.room.show_try_again = False
-                session.room.go(session.room)
+            elif session.room.count:
+                # If room has a count defined, step through counter
+                if session.room.paths.get(form.action) == None:
+                    session.room.count -= 1
+                    if session.room.count > 0:
+                        session.room.show_help = False
+                        session.room.show_try_again = False
+                    else:
+                        session.room = session.room.go('*')
+                else:
+                    session.room = session.room.go(form.action)
             elif session.room.paths.get(form.action) == None:
                 # When form input is not a defined path, use the catch all path '*' if one exists
+                # If no catch all path exists, redispaly room with try_again text.
                 if session.room.paths.get('*') == None:
                     session.room.show_try_again = True
                     session.room.show_help = False
-                    session.room.go(session.room)
                 else:
-                    session.room.show_try_again = False
-                    session.room.show_help = False
                     session.room = session.room.go('*')
             else:
-                session.room.show_try_again = False
-                session.room.show_help = False
                 session.room = session.room.go(form.action)
 
         web.seeother("/game")

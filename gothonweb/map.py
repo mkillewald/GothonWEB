@@ -6,6 +6,7 @@ class Room(object):
         self.name = name
         self.description = description
         self.end = end
+        self.count = None
         self.placeholder = None
         self.show_help = False
         self.show_try_again = False
@@ -191,6 +192,7 @@ def START():
     escape_pod.update_help(escape_pod.placeholder % good_pod)
 
     # Super easy help for testing only, would be silly to use in production.
+    laser_weapon_armory.count = 10
     laser_weapon_armory.placeholder = "Hint: Pick a number between %s and %s."
     laser_weapon_armory.update_help(
         laser_weapon_armory.placeholder  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
