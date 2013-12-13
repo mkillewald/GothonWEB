@@ -31,18 +31,17 @@ def test_map():
     assert_equal(start.go('down').go('up'), start)
     
 def test_gothon_game_map():
-    assert_equal(START.go('shoot!'), central_corridor_shoot)
-    assert_equal(START.go('dodge!'), central_corridor_dodge)
+    room = START()
+    assert_equal(room, central_corridor)
+    assert_equal(room.go('shoot'), central_corridor_shoot)
+    assert_equal(room.go('dodge'), central_corridor_dodge)
 
-    room = START.go('tell a joke')
+    room = room.go('tell a joke')
     assert_equal(room, laser_weapon_armory)
-    assert_equal(laser_weapon_armory.go('*'), laser_weapon_armory_death)
+    assert_equal(room.go('*'), laser_weapon_armory_death)
     
-    room = laser_weapon_armory.go('123')
-    assert_equal(room, the_bridge)
+    # Unable to test lock_code and good_pod since they are inside START()
+
     assert_equal(the_bridge.go('throw the bomb'), the_bridge_death)
-    
-    room = the_bridge.go('slowly place the bomb')
-    assert_equal(room, escape_pod)
-    assert_equal(escape_pod.go('2'), the_end_winner)
+    assert_equal(the_bridge.go('slowly place the bomb'), escape_pod)
     assert_equal(escape_pod.go('*'), the_end_loser)

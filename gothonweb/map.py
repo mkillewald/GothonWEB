@@ -113,7 +113,7 @@ the bomb. You die knowing they will probably blow up when
 it goes off.
 """, True)
 
-escape_pod = Room("Escape Pod",
+escape_pod = Room("Escape Pod", 
 """
 You point your blaster at the bomb under your arm
 and the Gothons put their hands up and start to sweat.
@@ -180,6 +180,7 @@ central_corridor.add_paths({
 })
 
 def START():
+
     good_pod = "%d" % randint(1,5)
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
 
