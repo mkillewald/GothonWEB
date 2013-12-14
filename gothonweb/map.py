@@ -12,6 +12,7 @@ class Room(object):
         self.show_try_again = False
         self.help = "Sorry, help is not available."
         self.try_again = "Sorry, try again. Maybe you should ask for 'help'"
+        self.secret = None
         self.paths = {}
         
     def go(self, direction):
@@ -182,7 +183,10 @@ central_corridor.add_paths({
 def START():
 
     good_pod = "%d" % randint(1,5)
+    escape_pod.secret = good_pod
+
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
+    laser_weapon_armory.secret = lock_code
 
     # Needed a way to replace %s placeholder in a Room description multiple times
     # without losing the placeholder after each run through the game.  

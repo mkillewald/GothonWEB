@@ -58,7 +58,7 @@ class GameEngine(object):
                     session.room = session.room.go(form.action)
             elif session.room.paths.get(form.action) == None:
                 # When form input is not a defined path, use the catch all path '*' if one exists
-                # If no catch all path exists, redispaly room with try_again text.
+                # If no catch all path exists, redisplay room with try_again text.
                 if session.room.paths.get('*') == None:
                     session.room.show_try_again = True
                     session.room.show_help = False
