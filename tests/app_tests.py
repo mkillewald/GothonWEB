@@ -5,7 +5,6 @@ from paste.fixture import TestApp
 from bin.app import app
 from gothonweb.map import *
 
-# This will generate a new session for each test. remember to delete session files after running tests. 
 def start_game():
     middleware = []
     return TestApp(app.wsgifunc(*middleware))
@@ -50,6 +49,7 @@ def test_index():
     resp = testApp.get('/game')
     assert_equal(resp.status, 200)
     resp.mustcontain(net.htmlquote(central_corridor.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_central_corridor():
@@ -73,6 +73,7 @@ def test_central_corridor():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_central_corridor_shoot():
@@ -83,6 +84,7 @@ def test_central_corridor_shoot():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(central_corridor_shoot.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_central_corridor_dodge():
@@ -93,6 +95,7 @@ def test_central_corridor_dodge():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(central_corridor_dodge.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_laser_weapon_armory_guesses():
@@ -157,6 +160,7 @@ def test_laser_weapon_armory_guesses():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory_death.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_laser_weapon_armory_lock():
@@ -176,6 +180,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_the_bridge():
@@ -199,6 +204,7 @@ def test_the_bridge():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(escape_pod.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_the_bridge_death():
@@ -209,6 +215,7 @@ def test_the_bridge_death():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge_death.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_escape_pod():
@@ -226,6 +233,7 @@ def test_escape_pod():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_winner.description))
+    testApp.get('/reset')
     testApp.reset()
 
 def test_escape_pod_death():
@@ -237,6 +245,5 @@ def test_escape_pod_death():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_loser.description))
+    testApp.get('/reset')
     testApp.reset()
-
-
