@@ -166,8 +166,8 @@ escape_pod.add_paths({
 })
 
 the_bridge.add_paths({
-    'throw the bomb': the_bridge_death,
-    'slowly place the bomb': escape_pod,
+    'player throw bomb': the_bridge_death,
+    'player place bomb': escape_pod,
 })
 
 laser_weapon_armory.add_paths({
@@ -175,9 +175,9 @@ laser_weapon_armory.add_paths({
 })
 
 central_corridor.add_paths({
-    'shoot': central_corridor_shoot,
-    'dodge': central_corridor_dodge,
-    'tell a joke': laser_weapon_armory,
+    'player shoot': central_corridor_shoot,
+    'player dodge': central_corridor_dodge,
+    'player tell joke': laser_weapon_armory,
 })
 
 def START():
@@ -203,7 +203,7 @@ def START():
         laser_weapon_armory.placeholder  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
     )
 
-    escape_pod.add_paths({good_pod: the_end_winner})
-    laser_weapon_armory.add_paths({lock_code: the_bridge})
+    escape_pod.add_paths({"player entered %s" % good_pod: the_end_winner})
+    laser_weapon_armory.add_paths({"player entered %s" % lock_code: the_bridge})
 
     return central_corridor

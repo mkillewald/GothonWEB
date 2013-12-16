@@ -3,7 +3,7 @@ from nose.tools import *
 from paste.fixture import TestApp
 
 from bin.app import app
-from gothonweb.map import *
+from gothonweb.gothon_map import *
 
 def start_game():
     middleware = []

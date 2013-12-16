@@ -1,5 +1,5 @@
 from nose.tools import *
-from gothonweb.map import *
+from gothonweb.gothon_map import *
 
 
 def test_room():
@@ -35,21 +35,21 @@ def test_map():
 def test_gothon_game_map():
     room = START()
     assert_equal(room, central_corridor)
-    assert_equal(room.go('shoot'), central_corridor_shoot)
-    assert_equal(room.go('dodge'), central_corridor_dodge)
+    assert_equal(room.go('player shoot'), central_corridor_shoot)
+    assert_equal(room.go('player dodge'), central_corridor_dodge)
 
-    room = room.go('tell a joke')
+    room = room.go('player tell joke')
     assert_equal(room, laser_weapon_armory)
-    assert_equal(room.go(laser_weapon_armory.secret), the_bridge)
+    assert_equal(room.go('player entered %s' % laser_weapon_armory.secret), the_bridge)
     assert_equal(room.go('*'), laser_weapon_armory_death)
 
-    room = room.go(laser_weapon_armory.secret)
+    room = room.go('player entered %s' % laser_weapon_armory.secret)
     assert_equal(room, the_bridge)
-    assert_equal(room.go('slowly place the bomb'), escape_pod)
-    assert_equal(room.go('throw the bomb'), the_bridge_death)
+    assert_equal(room.go('player place bomb'), escape_pod)
+    assert_equal(room.go('player throw bomb'), the_bridge_death)
 
-    room = room.go('slowly place the bomb')
+    room = room.go('player place bomb')
     assert_equal(room, escape_pod)
-    assert_equal(room.go(escape_pod.secret), the_end_winner)
+    assert_equal(room.go('player entered %s' % escape_pod.secret), the_end_winner)
     assert_equal(room.go('*'), the_end_loser)
 

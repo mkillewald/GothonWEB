@@ -1,11 +1,12 @@
 import os
 import web
-from gothonweb import map
+from gothonweb import gothon_map, lexicon, parser
+
 
 class Index(object):
     def GET(self):
         # this is used to "setup" the session with starting values
-        session.room = map.START()
+        session.room = gothon_map.START()
         web.seeother("/game")
 
 class Reset(object):
@@ -23,17 +24,27 @@ class GameEngine(object):
 
     def POST(self):
         form = web.input(action=None)
+        form_input = form.action
+        input_list = lexicon.scan(form_input.lower())
+        w = parser.WordList(input_list)
+        s = w.parse_sentence()
+        if s.subject and s.verb and s.object: 
+            form_input = " ".join([s.subject, s.verb, s.object])
+        elif s.subject and s.verb:
+            form_input = " ".join([s.subject, s.verb])
+        else:
+            form_input = None
 
         # there is a bug here, can you fix it? -Zed Shaw
         # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
-        if session.room and form.action:
-            if form.action == "help":
+        if session.room and form_input:
+            if form_input == "player help":
                 # If 'help' was input by user, redisplay room with help text.
                 session.room.show_help = True
                 session.room.show_try_again = False
             elif session.room.count:
                 # If room has a count defined, step through counter
-                if session.room.paths.get(form.action) == None:
+                if session.room.paths.get(form_input) == None:
                     session.room.count -= 1
                     if session.room.count > 0:
                         session.room.show_help = False
@@ -41,8 +52,8 @@ class GameEngine(object):
                     else:
                         session.room = session.room.go('*')
                 else:
-                    session.room = session.room.go(form.action)
-            elif session.room.paths.get(form.action) == None:
+                    session.room = session.room.go(form_input)
+            elif session.room.paths.get(form_input) == None:
                 # When form input is not a defined path, use the catch all path '*' if one exists
                 # If no catch all path exists, redisplay room with try_again text.
                 if session.room.paths.get('*') == None:
@@ -51,7 +62,7 @@ class GameEngine(object):
                 else:
                     session.room = session.room.go('*')
             else:
-                session.room = session.room.go(form.action)
+                session.room = session.room.go(form_input)
 
         web.seeother("/game")
 
@@ -62,11 +73,11 @@ def is_test():
     # we run our tests, it's simply a matter of running nosetests like so:
     #
     # WEBPY_ENV=test nosetests
-    
+
     if 'WEBPY_ENV' in os.environ:
         return os.environ['WEBPY_ENV'] == 'test'
 
-web.config.debug = False
+web.config.debug = True
 
 urls = (
   '/game', 'GameEngine',
