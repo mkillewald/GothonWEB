@@ -11,13 +11,13 @@ def scan(sentence):
         'north', 'south', 'east','west', 'up', 'down', 'left', 'right', 'back', 'forward'
     )
     verbs = (
-        'go', 'stop', 'kill', 'eat', 'open', 'smack', 'shoot', 'dodge', 'throw', 'place', 'tell', 'help'
+        'shoot', 'dodge', 'throw', 'place', 'tell', 'help'
     )
     stops = (
         'the', 'in', 'of', 'from', 'at', 'it', 'a', 'with'
     )
     nouns = (
-        'bear', 'door', 'princess', 'cabinet', 'hose', 'nose', 'joke', 'bomb'
+        'joke', 'bomb'
     )
     
     words = sentence.split()

@@ -1,11 +1,3 @@
-# Usage:
-# s = lexicon.scan("shoot the fucking bear")
-# w = WordList(s)
-# s = w.parse_sentence()
-# >>> print s.subject, s.verb, s.object
-# >>> player shoot bear
-
-
 class ParserError(Exception):
     pass
 
@@ -52,15 +44,6 @@ class WordList(object):
             self.__match(word_type)
 
 
-    def __parse_verb(self):
-        self.__skip('stop')
-     
-        if self.__peek() == 'verb':
-            return self.__match('verb')
-        else:
-            raise ParserError("Expected a verb next. Instead saw %s next." % next)
-
-
     def __parse_object(self):
         self.__skip('stop')
         next = self.__peek()
@@ -72,17 +55,31 @@ class WordList(object):
         if next == 'number':
             return self.__match('number')
         else:
-            raise ParserError("Expected a noun, direction or number next. Instead saw %s next." % next)
+            # Expected a noun, direction or number next, but received something else instead. 
+            # Clear self.word_list and return a blank object.
+            self.word_list = []
+            return ('noun', '')
+            #raise ParserError("Expected a noun, direction or number next. Instead saw %s next." % next)
 
-
-    def __parse_subject(self, subj): 
-        verb = self.__parse_verb()
+    def __parse_verb(self):
         self.__skip('stop')
+     
+        if self.__peek() == 'verb':
+            return self.__match('verb')
+        else:
+            # Expected verb next, but received something else instead. 
+            # Clear self.word_list and return a blank verb. 
+            self.word_list = []
+            return ('verb', '')
+            #raise ParserError("Expected a verb next. Instead saw %s next." % next)
+
+    def __parse_subject(self, subj):
+        verb = self.__parse_verb()
 
         if self.word_list:
             obj = self.__parse_object()
         else:
-            # word_list is empty, no object for verb to act on. 
+            # word_list is empty, no object for verb to act on. Return a blank noun. 
             obj = ('noun', '')
 
         return Sentence(subj, verb, obj)
@@ -106,8 +103,8 @@ class WordList(object):
         elif start == 'number':
             # assume the subjext is the player and the verb is 'entered'
             return self.__parse_number(('noun', 'player'), ('verb', 'entered'))
-        elif start == None:
+        #elif start == None:
+        else: 
             # word_list is empty and probably contained words not in lexicon
             return Sentence(('noun', 'player'), ('verb', 'try again'), ('noun', ''))
-        else:
-            raise ParserError("Must start with subject, object, or verb not: %s" % start)
+            #raise ParserError("Must start with subject, object, or verb not: %s" % start)

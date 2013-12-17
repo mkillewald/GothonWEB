@@ -33,7 +33,7 @@ class GameEngine(object):
         elif s.subject and s.verb:
             form_input = " ".join([s.subject, s.verb])
         else:
-            form_input = None
+            form_input = s.subject
 
         # there is a bug here, can you fix it? -Zed Shaw
         # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
