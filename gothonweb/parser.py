@@ -10,6 +10,19 @@ class Sentence(object):
         self.object = object[1]
 
 
+    def form_sentence(self):
+        """
+        Returns a formed sentence string
+        """
+    
+        if self.subject and self.verb and self.object: 
+            return " ".join([self.subject, self.verb, self.object])
+        elif self.subject and self.verb:
+            return " ".join([self.subject, self.verb])
+        else:
+            return self.subject
+
+
 class WordList(object):
     """
     Use parse_sentence method to convert list of tuples from lexicon.scan into a Sentence object. 
@@ -90,6 +103,10 @@ class WordList(object):
         return Sentence(subj, verb, obj)
 
     def parse_sentence(self):
+        """
+        Takes list of tuples from lexicon.scan and returns Sentence object.
+        """ 
+
         self.__skip('stop')
      
         start = self.__peek()

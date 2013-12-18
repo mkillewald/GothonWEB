@@ -241,7 +241,7 @@ def test_escape_pod_death():
 
     # test path to the_end_loser
     form = resp.forms[0]
-    form['action'] = 'efsfss'
+    form['action'] = '9'
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_loser.description))

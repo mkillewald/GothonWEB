@@ -24,26 +24,25 @@ class GameEngine(object):
 
     def POST(self):
         form = web.input(action=None)
-        form_input = form.action
-        input_list = lexicon.scan(form_input.lower())
+
+        input_list = lexicon.scan(form.action.lower())
         w = parser.WordList(input_list)
         s = w.parse_sentence()
-        if s.subject and s.verb and s.object: 
-            form_input = " ".join([s.subject, s.verb, s.object])
-        elif s.subject and s.verb:
-            form_input = " ".join([s.subject, s.verb])
-        else:
-            form_input = s.subject
+        form_input = s.form_sentence()
 
         # there is a bug here, can you fix it? -Zed Shaw
         # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
         if session.room and form_input:
             if form_input == "player help":
-                # If 'help' was input by user, redisplay room with help text.
+                # If 'help' was input by user, redisplay room with room.help text.
                 session.room.show_help = True
                 session.room.show_try_again = False
+            elif form_input == "player try again":
+                # If user input was not understood, redisplay room with room.try_again text.
+                session.room.show_help = False
+                session.room.show_try_again = True
             elif session.room.count:
-                # If room has a count defined, step through counter
+                # If room has a count defined, step through counter until it reaches 0.
                 if session.room.paths.get(form_input) == None:
                     session.room.count -= 1
                     if session.room.count > 0:
@@ -77,7 +76,7 @@ def is_test():
     if 'WEBPY_ENV' in os.environ:
         return os.environ['WEBPY_ENV'] == 'test'
 
-web.config.debug = True
+web.config.debug = False
 
 urls = (
   '/game', 'GameEngine',

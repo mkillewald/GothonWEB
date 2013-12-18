@@ -1,12 +1,19 @@
 def convert_numbers(s):
+    """
+    If input string is a number, returns int
+    """
+
     try:
         return int(s)
     except ValueError:
         return None
 
 def scan(sentence):
-    # returns a list of tuples. "shoot the bear" becomes
-    # [('verb', 'shoot'), ('stop', 'the'), ('noun', 'bear')]
+    """
+    Takes input string and returns a list of tuples. "shoot the bear" becomes
+    [('verb', 'shoot'), ('stop', 'the'), ('noun', 'bear')]
+    """
+
     directions = (
         'north', 'south', 'east','west', 'up', 'down', 'left', 'right', 'back', 'forward'
     )
