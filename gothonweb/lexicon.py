@@ -43,6 +43,7 @@ def scan(sentence):
         else:
             pass
             # word is not defined in lexicon and is skipped
+            # wish list: store list of words not understood for manual review and possible addition to lexicon
             #result.append(('error', item))    
     return result
 

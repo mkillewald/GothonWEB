@@ -20,6 +20,7 @@ class GameEngine(object):
         if session.room:
             return render.show_room(room=session.room)
         else:
+            # Something wonderful has happened... 
             return render.error()
 
     def POST(self):
@@ -30,37 +31,34 @@ class GameEngine(object):
         s = w.parse_sentence()
         form_input = s.form_sentence()
 
-        # there is a bug here, can you fix it? -Zed Shaw
-        # If you mean the catch all path was never called, then yes I fixed it. -Mike Killewald
+        # there is a bug here when form_input matches lexicon but is not a defined path for room.
+        # In that case, it should trigger try again, but instead it is being processed as bad guess. 
+        # need to re-work this logic. 
         if session.room and form_input:
             if form_input == "player help":
-                # If 'help' was input by user, redisplay room with room.help text.
+                # 'help' was input by user, redisplay room with room.help text.
                 session.room.show_help = True
                 session.room.show_try_again = False
             elif form_input == "player try again":
-                # If user input was not understood, redisplay room with room.try_again text.
+                # Form input was not understood by lexicon, redisplay room with room.try_again text.
                 session.room.show_help = False
                 session.room.show_try_again = True
-            elif session.room.count:
-                # If room has a count defined, step through counter until it reaches 0.
-                if session.room.paths.get(form_input) == None:
-                    session.room.count -= 1
-                    if session.room.count > 0:
-                        session.room.show_help = False
-                        session.room.show_try_again = False
-                    else:
-                        session.room = session.room.go('*')
-                else:
-                    session.room = session.room.go(form_input)
             elif session.room.paths.get(form_input) == None:
-                # When form input is not a defined path, use the catch all path '*' if one exists
-                # If no catch all path exists, redisplay room with try_again text.
-                if session.room.paths.get('*') == None:
+                # Form input is understood by lexicon, but is not a defined path. 
+                if session.room.count > 1:
+                    # If room.count is greater than 1, step through counter until it reaches 0
+                    session.room.count -=1
+                    session.room.show_help = False
+                    session.room.show_try_again = False
+                elif session.room.paths.get('*'):
+                    # The catch all path exists, so lets use it.  
+                    session.room = session.room.go('*')
+                else:
+                    # No catch all path exists, redisplay room with room.try_again text.
                     session.room.show_try_again = True
                     session.room.show_help = False
-                else:
-                    session.room = session.room.go('*')
             else:
+                # Form input is understood and is a defined path. 
                 session.room = session.room.go(form_input)
 
         web.seeother("/game")
