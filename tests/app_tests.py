@@ -21,6 +21,7 @@ def enter_laser_weapon_armory():
     form['action'] = 'tell a joke'
     form.submit()
     resp = testApp.get('/game')
+    form = resp.forms[0]
     return (testApp, form, resp)
 
 def enter_the_bridge():
@@ -28,6 +29,7 @@ def enter_the_bridge():
     form['action'] = laser_weapon_armory.secret
     form.submit()
     resp = testApp.get('/game')
+    form = resp.forms[0]
     return (testApp, form, resp)
 
 def enter_escape_pod():
@@ -35,6 +37,7 @@ def enter_escape_pod():
     form['action'] = 'slowly place the bomb'
     form.submit()
     resp = testApp.get('/game')
+    form = resp.forms[0]
     return (testApp, form, resp)
 
 def test_index():
@@ -68,7 +71,6 @@ def test_central_corridor():
     resp.mustcontain(net.htmlquote(central_corridor.help))
 
     # test path to Laser Weapon Armory
-    form = resp.forms[0]
     form['action'] = 'tell a joke'
     form.submit()
     resp = testApp.get('/game')
@@ -107,29 +109,50 @@ def test_laser_weapon_armory_guesses():
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory.help))
 
-    # test 10 guesses
-    resp.mustcontain('You have 10 tries left')
+    # test invalid input
     form['action'] = '1'
     form.submit()
     resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
+    form['action'] = 'tell a joke'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
+    form['action'] = 'fuck you'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
+
+    # test 10 'assumed' wrong guesses
+    if laser_weapon_armory.secret == '999':
+        test_input = '998'
+    else:
+        test_input = '999'
+    resp.mustcontain('You have 10 tries left')
+    form['action'] = test_input
+    form.submit()
+    resp = testApp.get('/game')
     resp.mustcontain('You have 9 tries left')
-    form['action'] = '2'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 8 tries left')
-    form['action'] = '3'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 7 tries left')
-    form['action'] = '4'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 6 tries left')
-    form['action'] = '5'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 5 tries left')
-    form['action'] = '6'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 4 tries left')
@@ -142,21 +165,21 @@ def test_laser_weapon_armory_guesses():
     resp.mustcontain(net.htmlquote(laser_weapon_armory.help))
 
     # continue checking remaining guesses
-    form['action'] = '7'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 3 tries left')
-    form['action'] = '8'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 2 tries left')
-    form['action'] = '9'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 1 try left')
 
     #last guess, a wrong entry here should equal death
-    form['action'] = '10'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory_death.description))
@@ -164,18 +187,83 @@ def test_laser_weapon_armory_guesses():
     testApp.reset()
 
 def test_laser_weapon_armory_lock():
+    # test lock code on first guess
     testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = laser_weapon_armory.secret
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
+    testApp.reset()
 
-    # enter a couple wrong guesses
-    resp.mustcontain('You have 10 tries left')
-    form['action'] = '1'
+    # test lock code after displaying help
+    testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = 'help'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.help))
+    form['action'] = laser_weapon_armory.secret
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
+    testApp.reset()
+
+    # test lock code after 'assumed' wrong guesses
+    testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = '001'
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 9 tries left')
-    form['action'] = '2'
+    form['action'] = '002'
     form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 8 tries left')
+    form['action'] = laser_weapon_armory.secret
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
+    testApp.reset()
 
-    # test lock code
+    # test lock code after invalid input
+    # Case 1: input not recognized by lexicon
+    testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = 'fuck you'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
+    form['action'] = laser_weapon_armory.secret
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
+    testApp.reset()
+
+    # test lock code after invalid input
+    # Case 2: input recognized by lexicon, but does not match room.filter
+    testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = 'tell a joke'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
+    form['action'] = laser_weapon_armory.secret
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(the_bridge.description))
+    testApp.get('/reset')
+    testApp.reset()
+
+    # test lock code after invalid input
+    # Case 3: Not enough digits. (does not match room.filter)
+    testApp, form, resp = enter_laser_weapon_armory()
+    form['action'] = '1'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain('You have 10 tries left')
+    resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
     form['action'] = laser_weapon_armory.secret
     form.submit()
     resp = testApp.get('/game')
@@ -221,6 +309,27 @@ def test_the_bridge_death():
 def test_escape_pod():
     testApp, form, resp = enter_escape_pod()
 
+    # test invalid input
+    # Case 1: digit not 1-5
+    form['action'] = '9'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(escape_pod.try_again))
+
+    # test invalid input
+    # Case 2: input not in lexicon
+    form['action'] = 'fuck you'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(escape_pod.try_again))
+
+    # test invalid input
+    # Case 3: input in lexicon, but does not match room.filter
+    form['action'] = 'tell a joke'
+    form.submit()
+    resp = testApp.get('/game')
+    resp.mustcontain(net.htmlquote(escape_pod.try_again))
+
     # test help
     form['action'] = 'help'
     form.submit()
@@ -228,7 +337,6 @@ def test_escape_pod():
     resp.mustcontain(net.htmlquote(escape_pod.help))
 
     # test path to the_end_winner
-    form = resp.forms[0]
     form['action'] = escape_pod.secret
     form.submit()
     resp = testApp.get('/game')
@@ -239,9 +347,12 @@ def test_escape_pod():
 def test_escape_pod_death():
     testApp, form, resp = enter_escape_pod()
 
-    # test path to the_end_loser
-    form = resp.forms[0]
-    form['action'] = '9'
+    #test path to the_end_loser
+    if escape_pod.secret == '1':
+        test_input = '2'
+    else:
+        test_input = '1'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_loser.description))

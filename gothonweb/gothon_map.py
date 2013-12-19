@@ -1,3 +1,4 @@
+import re
 from random import randint
 
 class Room(object):
@@ -13,6 +14,7 @@ class Room(object):
         self.help = "Sorry, help is not available."
         self.try_again = "Sorry, try again. Maybe you should ask for 'help'"
         self.secret = None
+        self.filter = re.compile(r'^.*$')
         self.paths = {}
         
     def go(self, direction):
@@ -157,53 +159,55 @@ The End
 """, True)
 
 central_corridor.help ="Do you choose to 'shoot', 'dodge' or 'tell a joke'?"
-the_bridge.help = "Do you choose to 'slowly place the bomb' or 'throw the bomb'?"
-
-the_end_winner.placeholder = the_end_winner.description
-
-escape_pod.add_paths({
-    '*': the_end_loser
-})
-
-the_bridge.add_paths({
-    'player throw bomb': the_bridge_death,
-    'player place bomb': escape_pod,
-})
-
-laser_weapon_armory.add_paths({
-    '*': laser_weapon_armory_death
-})
-
 central_corridor.add_paths({
     'player shoot': central_corridor_shoot,
     'player dodge': central_corridor_dodge,
     'player tell joke': laser_weapon_armory,
 })
 
+laser_weapon_armory.try_again = "Sorry, try again. The lock code is 3 digits."
+
+the_bridge.help = "Do you choose to 'slowly place the bomb' or 'throw the bomb'?"
+the_bridge.add_paths({
+    'player throw bomb': the_bridge_death,
+    'player place bomb': escape_pod,
+})
+
+escape_pod.try_again = "Sorry, try again. The escape pods are numbered 1 through 5."
+
+the_end_winner.placeholder = the_end_winner.description
+
 def START():
 
-    good_pod = "%d" % randint(1,5)
-    escape_pod.secret = good_pod
-
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
-    laser_weapon_armory.secret = lock_code
-
-    # Needed a way to replace %s placeholder in a Room description multiple times
-    # without losing the placeholder after each run through the game.  
-    the_end_winner.update_description(the_end_winner.placeholder % good_pod)
-
-    # Super easy help for testing only, would be silly to use in production. 
-    escape_pod.placeholder = "Hint: Your Mother's favorite number is %s."    
-    escape_pod.update_help(escape_pod.placeholder % good_pod)
-
-    # Super easy help for testing only, would be silly to use in production.
     laser_weapon_armory.count = 10
     laser_weapon_armory.placeholder = "Hint: Pick a number between %s and %s."
+    laser_weapon_armory.secret = lock_code
+    laser_weapon_armory.filter = re.compile(r'^player entered \d{3}$')
+    laser_weapon_armory.paths = {}
+    laser_weapon_armory.add_paths({
+        'player entered %s' % lock_code: the_bridge,
+        '*': laser_weapon_armory_death
+    })
+
+    # Super easy help for testing only, would be silly to use in production.
     laser_weapon_armory.update_help(
         laser_weapon_armory.placeholder  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
     )
 
-    escape_pod.add_paths({"player entered %s" % good_pod: the_end_winner})
-    laser_weapon_armory.add_paths({"player entered %s" % lock_code: the_bridge})
+    good_pod = "%d" % randint(1,5)
+    escape_pod.placeholder = "Hint: Your Mother's favorite number is %s."
+    escape_pod.secret = good_pod
+    escape_pod.filter = re.compile(r'^player entered [1-5]$')
+    escape_pod.paths = {}
+    escape_pod.add_paths({
+        'player entered %s' % good_pod: the_end_winner,
+        '*': the_end_loser
+    })
+
+    # Super easy help for testing only, would be silly to use in production.     
+    escape_pod.update_help(escape_pod.placeholder % good_pod)
+ 
+    the_end_winner.update_description(the_end_winner.placeholder % good_pod)
 
     return central_corridor

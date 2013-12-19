@@ -1,5 +1,6 @@
 import os
 import web
+import re
 from gothonweb import gothon_map, lexicon, parser
 
 
@@ -31,9 +32,6 @@ class GameEngine(object):
         s = w.parse_sentence()
         form_input = s.form_sentence()
 
-        # there is a bug here when form_input matches lexicon but is not a defined path for room.
-        # In that case, it should trigger try again, but instead it is being processed as bad guess. 
-        # need to re-work this logic. 
         if session.room and form_input:
             if form_input == "player help":
                 # 'help' was input by user, redisplay room with room.help text.
@@ -44,17 +42,20 @@ class GameEngine(object):
                 session.room.show_help = False
                 session.room.show_try_again = True
             elif session.room.paths.get(form_input) == None:
-                # Form input is understood by lexicon, but is not a defined path. 
-                if session.room.count > 1:
-                    # If room.count is greater than 1, step through counter until it reaches 0
+                # Form input is understood by lexicon, but is not in room.paths. 
+                if session.room.filter.match(form_input) and session.room.count > 1:
+                    # Form input matches room.filter and count is greater than 1, so
+                    # decrement counter and redisplay room
                     session.room.count -=1
                     session.room.show_help = False
                     session.room.show_try_again = False
-                elif session.room.paths.get('*'):
-                    # The catch all path exists, so lets use it.  
+                elif session.room.filter.match(form_input) and session.room.paths.get('*'):
+                    # room.count either doesn't exist of is less than 1, a catch all path '*' exists and
+                    # form input matches room.filter, so lets follow the '*' path
                     session.room = session.room.go('*')
                 else:
-                    # No catch all path exists, redisplay room with room.try_again text.
+                    # Form input does not match room.filter, or no catch all path exists,
+                    # redisplay room with room.try_again text.
                     session.room.show_try_again = True
                     session.room.show_help = False
             else:
