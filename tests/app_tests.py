@@ -126,7 +126,7 @@ def test_laser_weapon_armory_guesses():
     resp.mustcontain('You have 10 tries left')
     resp.mustcontain(net.htmlquote(laser_weapon_armory.try_again))
 
-    # test 10 'assumed' wrong guesses
+    # test 10 wrong guesses
     if laser_weapon_armory.secret == '999':
         test_input = '998'
     else:
@@ -209,13 +209,17 @@ def test_laser_weapon_armory_lock():
     testApp.get('/reset')
     testApp.reset()
 
-    # test lock code after 'assumed' wrong guesses
+    # test lock code after wrong guesses
+    if laser_weapon_armory.secret == '999':
+        test_input = '998'
+    else:
+        test_input = '999'
     testApp, form, resp = enter_laser_weapon_armory()
-    form['action'] = '001'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 9 tries left')
-    form['action'] = '002'
+    form['action'] = test_input
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain('You have 8 tries left')
