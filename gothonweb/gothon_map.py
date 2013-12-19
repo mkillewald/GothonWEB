@@ -165,6 +165,7 @@ central_corridor.add_paths({
     'player tell joke': laser_weapon_armory,
 })
 
+laser_weapon_armory.placeholder = "Hint: Pick a number between %s and %s."
 laser_weapon_armory.try_again = "Sorry, try again. The lock code is 3 digits."
 
 the_bridge.help = "Do you choose to 'slowly place the bomb' or 'throw the bomb'?"
@@ -181,7 +182,6 @@ def START():
 
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
     laser_weapon_armory.count = 10
-    laser_weapon_armory.placeholder = "Hint: Pick a number between %s and %s."
     laser_weapon_armory.secret = lock_code
     laser_weapon_armory.filter = re.compile(r'^player entered \d{3}$')
     laser_weapon_armory.paths = {}
@@ -191,9 +191,12 @@ def START():
     })
 
     # Super easy help for testing only, would be silly to use in production.
-    laser_weapon_armory.update_help(
-        laser_weapon_armory.placeholder  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
-    )
+    if lock_code == "000":
+        laser_weapon_armory.help = "Hint: Lock code is the same as the combination to your luggage '000'."
+    else:
+        laser_weapon_armory.update_help(
+            laser_weapon_armory.placeholder  % (str(int(lock_code)-1).zfill(3), str(int(lock_code)+1).zfill(3))
+        )
 
     good_pod = "%d" % randint(1,5)
     escape_pod.placeholder = "Hint: Your Mother's favorite number is %s."
