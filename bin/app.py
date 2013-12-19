@@ -41,26 +41,26 @@ class GameEngine(object):
                 # Form input was not understood by lexicon, redisplay room with room.try_again text.
                 session.room.show_help = False
                 session.room.show_try_again = True
-            elif session.room.paths.get(form_input) == None:
+            elif session.room.paths.get(form_input):
+                # Form input is understood and is a defined path.
+                session.room = session.room.go(form_input)
+            else: 
                 # Form input is understood by lexicon, but is not in room.paths. 
-                if session.room.filter.match(form_input) and session.room.count > 1:
+                if  session.room.filter.match(form_input) and session.room.count > 1:
                     # Form input matches room.filter and count is greater than 1, so
                     # decrement counter and redisplay room
                     session.room.count -=1
                     session.room.show_help = False
                     session.room.show_try_again = False
                 elif session.room.filter.match(form_input) and session.room.paths.get('*'):
-                    # room.count either doesn't exist of is less than 1, a catch all path '*' exists and
-                    # form input matches room.filter, so lets follow the '*' path
+                    # room.count either doesn't exist of is less than 1, a catch all path '*' exists,
+                    # so lets follow the '*' path
                     session.room = session.room.go('*')
                 else:
                     # Form input does not match room.filter, or no catch all path exists,
                     # redisplay room with room.try_again text.
                     session.room.show_try_again = True
                     session.room.show_help = False
-            else:
-                # Form input is understood and is a defined path. 
-                session.room = session.room.go(form_input)
 
         web.seeother("/game")
 
