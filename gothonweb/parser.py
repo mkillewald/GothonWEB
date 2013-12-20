@@ -3,6 +3,9 @@ class ParserError(Exception):
 
 
 class Sentence(object):
+    """
+    Use form_sentece() to return a completed sentence string from a Sentence object
+    """
 
     def __init__(self, subject, verb, object):
         self.subject = subject[1]
@@ -23,9 +26,9 @@ class Sentence(object):
             return self.subject
 
 
-class WordList(object):
+class Parser(object):
     """
-    Use parse_sentence method to convert list of tuples from lexicon.scan into a Sentence object. 
+    Use parse_sentence() to convert list of tuples from lexicon.scan into a Sentence object. 
 
     """
 

@@ -174,12 +174,12 @@ the_bridge.add_paths({
     'player place bomb': escape_pod,
 })
 
+escape_pod.placeholder = "Hint: Your Mother's favorite number is %s."
 escape_pod.try_again = "Sorry, try again. The escape pods are numbered 1 through 5."
 
 the_end_winner.placeholder = the_end_winner.description
 
 def START():
-
     lock_code = "%d%d%d" % (randint(0,9), randint(0,9), randint(0,9))
     laser_weapon_armory.count = 10
     laser_weapon_armory.secret = lock_code
@@ -199,7 +199,6 @@ def START():
         )
 
     good_pod = "%d" % randint(1,5)
-    escape_pod.placeholder = "Hint: Your Mother's favorite number is %s."
     escape_pod.secret = good_pod
     escape_pod.filter = re.compile(r'^player entered [1-5]$')
     escape_pod.paths = {}

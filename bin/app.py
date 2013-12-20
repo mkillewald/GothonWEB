@@ -29,7 +29,7 @@ class GameEngine(object):
 
         if session.room and form.action:
             input_list = lexicon.scan(form.action.lower())
-            w = parser.WordList(input_list)
+            w = parser.Parser(input_list)
             s = w.parse_sentence()
             form_input = s.form_sentence()
 
