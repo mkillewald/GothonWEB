@@ -11,6 +11,11 @@ def start_game():
 
 def start_central_corridor():
     testApp = start_game()
+    resp = testApp.get('/login')
+    form = resp.forms[0]
+    form['name'] = 'test'
+    form['passwd'] = 'test1'
+    form.submit()
     resp = testApp.get('/')
     resp = resp.follow()
     form = resp.forms[0]
@@ -40,21 +45,6 @@ def enter_escape_pod():
     form = resp.forms[0]
     return (testApp, form, resp)
 
-def test_index():
-    testApp = start_game()
-    
-    # check that we get a 303 on the / URL 
-    # because it redirects to /game through GameEngine
-    resp = testApp.get('/')
-    assert_equal(resp.status, 303)
-    
-    # check that /game loads correct room on start
-    resp = testApp.get('/game')
-    assert_equal(resp.status, 200)
-    resp.mustcontain(net.htmlquote(central_corridor.description))
-    testApp.get('/reset')
-    testApp.reset()
-
 def test_central_corridor():
     testApp, form, resp = start_central_corridor()
 
@@ -75,7 +65,7 @@ def test_central_corridor():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_central_corridor_shoot():
@@ -86,7 +76,7 @@ def test_central_corridor_shoot():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(central_corridor_shoot.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_central_corridor_dodge():
@@ -97,7 +87,7 @@ def test_central_corridor_dodge():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(central_corridor_dodge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_laser_weapon_armory_guesses():
@@ -183,7 +173,7 @@ def test_laser_weapon_armory_guesses():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(laser_weapon_armory_death.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_laser_weapon_armory_lock():
@@ -193,7 +183,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
     # test lock code after displaying help
@@ -206,7 +196,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
     # test lock code after wrong guesses
@@ -227,7 +217,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
     # test lock code after invalid input
@@ -242,7 +232,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
     # test lock code after invalid input
@@ -257,7 +247,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
     # test lock code after invalid input
@@ -272,7 +262,7 @@ def test_laser_weapon_armory_lock():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_the_bridge():
@@ -296,7 +286,7 @@ def test_the_bridge():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(escape_pod.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_the_bridge_death():
@@ -307,7 +297,7 @@ def test_the_bridge_death():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_bridge_death.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_escape_pod():
@@ -345,7 +335,7 @@ def test_escape_pod():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_winner.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()
 
 def test_escape_pod_death():
@@ -360,5 +350,5 @@ def test_escape_pod_death():
     form.submit()
     resp = testApp.get('/game')
     resp.mustcontain(net.htmlquote(the_end_loser.description))
-    testApp.get('/reset')
+    testApp.get('/logout')
     testApp.reset()

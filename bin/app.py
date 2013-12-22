@@ -5,16 +5,6 @@ import re
 
 from gothonweb import gothon_map, lexicon, parser
 
-
-class Index(object):
-    def GET(self):
-        if logged():
-            # this is used to "setup" the session with starting values
-            session.room = gothon_map.START()
-            web.seeother("/game")
-        else:
-            web.seeother("/login")
-
 class Login(object):
     def GET(self):
         if logged():
@@ -28,9 +18,10 @@ class Login(object):
 
         try:
             ident = db.select('game_users', where='username=$name', vars=locals())[0]
-            if hashlib.sha1("sAlT754-"+passwd).hexdigest() == ident['pass']:
+            if hashlib.sha1("sAlT754-"+passwd).hexdigest() == ident['passwd']:
                 session.login = 1
                 session.privilege = ident['privilege']
+                session.username = ident['username']
                 web.seeother("/")
             else:
                 session.login = 0 
@@ -42,7 +33,6 @@ class Login(object):
             session.privilege = 0
             render = create_render(session.privilege)
             return render.login_error()
-
 
 class Logout(object):
     def GET(self):
@@ -56,15 +46,63 @@ class Logout(object):
 
 class Reset(object):
     def GET(self):
-        session.login = 0
-        session.kill()
-        web.seeother('/')
+        if logged():
+            session.login = 0
+            session.kill()
+            render = create_render(session.privilege)
+            return render.logout()
+        else:
+            web.seeother("/")
  
-class SignUp(object):
+class Register(object):
+    def GET(self):
+        if logged():
+            web.seeother("/")
+        else:
+            render = create_render(session.privilege)
+            return render.register()
+
+    def POST(self):
+        if logged():
+            web.seeother("/")
+        else:
+            name, passwd, email = web.input().name, web.input().passwd, web.input().email
+
+            try:
+                check_username = db.select('game_users', where='username=$name', vars=locals())[0]
+                render = create_render(session.privilege)
+                return render.register_error(error="Username already exists, please try again.")
+            except:
+                check_username = False
+
+            try:
+                check_email = db.select('game_users', where='email=$email', vars=locals())[0]
+                render = create_render(session.privilege)
+                return render.register_error(error="E-mail address already exists, please try again.")
+            except:
+                check_email = False
+
+            if not check_email and not check_username:
+                try:
+                    passwd = hashlib.sha1("sAlT754-"+passwd).hexdigest()
+                    add_user = db.insert('game_users', username=name, passwd=passwd, email=email, privilege=0)
+                    render = create_render(session.privilege)
+                    return render.register_ok()
+                except:
+                    render = create_render(session.privilege)
+                    return render.register_error(error="Registration failed, please try again.")
+
+class ForgotPass(object):
     pass
 
-class ForgetPass(object):
-    pass
+class Index(object):
+    def GET(self):
+        if logged():
+            # this is used to "setup" the session with starting values
+            session.room = gothon_map.START()
+            web.seeother("/game")
+        else:
+            web.seeother("/login")
 
 class GameEngine(object):
     def GET(self):
@@ -120,17 +158,16 @@ def logged():
 def create_render(privilege):
     if logged():
         if privilege == 0:
-            render = web.template.render('templates/reader', base="../layout")
+            render = web.template.render('templates/reader', base="../layout", globals={'context': session})
         elif privilege == 1:
-            render = web.template.render('templates/user', base="../layout")
+            render = web.template.render('templates/user', base="../layout", globals={'context': session})
         elif privilege == 2:
-            render = web.template.render('templates/admin', base="../layout")
+            render = web.template.render('templates/admin', base="../layout", globals={'context': session})
         else:
-            render = web.template.render('templates/communs', base="../layout")
+            render = web.template.render('templates/communs', base="../layout", globals={'context': session})
     else:
-        render = web.template.render('templates/communs', base="../layout")
+        render = web.template.render('templates/communs', base="../layout", globals={'context': session})
     return render
-
 
 def is_test():
     # In order to avoid kicking off web.py's webserver when we run our tests, 
@@ -146,23 +183,20 @@ web.config.debug = False
 urls = (
   '/login', 'Login',
   '/logout', 'Logout',
+  '/register', 'Register',
   '/game', 'GameEngine',
   '/reset', 'Reset',
   '/', 'Index',
 )
 
-#app = web.application(urls, globals())
-app = web.application(urls, locals())
+app = web.application(urls, globals())
 db = web.database(dbn='postgres', db='GothonWEB', user='vagrant', pw='')
-
-#render = web.template.render('templates/', base="layout")
 
 # little hack so that debug mode works with sessions
 if web.config.get('_session') is None:
     store = web.session.DBStore(db, 'sessions')
-    #store = web.session.DiskStore('sessions')
     session = web.session.Session(app, store, 
-        initializer={'room': None, 'login': 0, 'privilege': 0})
+        initializer={'room': None, 'login': 0, 'privilege': 0, 'username': None})
     web.config._session = session
 else:
     session = web.config._session

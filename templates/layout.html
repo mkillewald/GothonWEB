@@ -5,7 +5,11 @@ $def with (content)
     <title>Gothons From Planet Percal #25</title>
 </head>
 <body>
-<div style="text-align:left; float:right;"><a href="/logout">Logout</a></div>
+$if context.login:
+    <div style="text-align:right; float:right;">
+    You are logged in as <b>$context.username</b><br />
+    <a href="/logout">Logout</a>
+    </div>
 <div>$:content</div>
 </body>
 </html>
