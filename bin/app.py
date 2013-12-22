@@ -11,7 +11,7 @@ class Login(object):
             web.seeother("/")
         else:
             render = create_render(session.privilege)
-            return render.login()
+            return render.login(message=None)
 
     def POST(self):
         name, passwd = web.input().name, web.input().passwd
@@ -27,12 +27,12 @@ class Login(object):
                 session.login = 0 
                 session.privilege = 0
                 render = create_render(session.privilege)
-                return render.login_error()
+                return render.login(message="Password incorrect, please try again.")
         except:
             session.login = 0
             session.privilege = 0
             render = create_render(session.privilege)
-            return render.login_error()
+            return render.login(message="Username invalid, please try again.")
 
 class Logout(object):
     def GET(self):
@@ -60,37 +60,40 @@ class Register(object):
             web.seeother("/")
         else:
             render = create_render(session.privilege)
-            return render.register()
+            return render.register(message="All fields are required.")
 
     def POST(self):
         if logged():
             web.seeother("/")
         else:
             name, passwd, email = web.input().name, web.input().passwd, web.input().email
-
-            try:
-                check_username = db.select('game_users', where='username=$name', vars=locals())[0]
+            if name == '' or passwd == '' or email == '':
                 render = create_render(session.privilege)
-                return render.register_error(error="Username already exists, please try again.")
-            except:
-                check_username = False
-
-            try:
-                check_email = db.select('game_users', where='email=$email', vars=locals())[0]
-                render = create_render(session.privilege)
-                return render.register_error(error="E-mail address already exists, please try again.")
-            except:
-                check_email = False
-
-            if not check_email and not check_username:
+                return render.register(message="All fields are required, please try again.")
+            else:
                 try:
-                    passwd = hashlib.sha1("sAlT754-"+passwd).hexdigest()
-                    add_user = db.insert('game_users', username=name, passwd=passwd, email=email, privilege=0)
+                    check_username = db.select('game_users', where='username=$name', vars=locals())[0]
                     render = create_render(session.privilege)
-                    return render.register_ok()
+                    return render.register(message="Username already exists, please try again.")
                 except:
+                    check_username = False
+
+                try:
+                    check_email = db.select('game_users', where='email=$email', vars=locals())[0]
                     render = create_render(session.privilege)
-                    return render.register_error(error="Registration failed, please try again.")
+                    return render.register(message="E-mail address already exists, please try again.")
+                except:
+                    check_email = False
+
+                if not check_email and not check_username:
+                    try:
+                        passwd = hashlib.sha1("sAlT754-"+passwd).hexdigest()
+                        add_user = db.insert('game_users', username=name, passwd=passwd, email=email, privilege=0)
+                        render = create_render(session.privilege)
+                        return render.login(message="Registration successful, please login:")
+                    except:
+                        render = create_render(session.privilege)
+                        return render.register(message="Registration failed, please try again.")
 
 class ForgotPass(object):
     pass
