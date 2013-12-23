@@ -39,23 +39,12 @@ class Login(object):
 class Logout(object):
     def GET(self):
         if logged():
-            session.login = 0
             session.kill()
             render = create_render(session.privilege)
             return render.logout()
         else:
             web.seeother("/")
 
-class Reset(object):
-    def GET(self):
-        if logged():
-            session.login = 0
-            session.kill()
-            render = create_render(session.privilege)
-            return render.logout()
-        else:
-            web.seeother("/")
- 
 class Register(object):
     def GET(self):
         if logged():
@@ -153,12 +142,9 @@ class GameEngine(object):
             web.seeother("/login")
 
 def logged():
-    try:
-        if session.login == 1:
-            return True
-        else:
-            return False
-    except:
+    if session.login == 1:
+        return True
+    else:
         return False
 
 def create_render(privilege):
@@ -191,7 +177,6 @@ urls = (
   '/logout', 'Logout',
   '/register', 'Register',
   '/game', 'GameEngine',
-  '/reset', 'Reset',
   '/', 'Index',
 )
 
