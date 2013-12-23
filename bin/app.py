@@ -22,7 +22,9 @@ class Login(object):
                 session.login = 1
                 session.privilege = ident['privilege']
                 session.username = ident['username']
-                web.seeother("/")
+                # this is used to "setup" the session with starting values
+                session.room = gothon_map.START()
+                web.seeother("/game")
             else:
                 session.login = 0 
                 session.privilege = 0
@@ -72,20 +74,20 @@ class Register(object):
                 return render.register(message="All fields are required, please try again.")
             else:
                 try:
-                    check_username = db.select('game_users', where='username=$name', vars=locals())[0]
+                    match_username = db.select('game_users', where='username=$name', vars=locals())[0]
                     render = create_render(session.privilege)
                     return render.register(message="Username already exists, please try again.")
                 except:
-                    check_username = False
+                    match_username = False
 
                 try:
-                    check_email = db.select('game_users', where='email=$email', vars=locals())[0]
+                    match_email = db.select('game_users', where='email=$email', vars=locals())[0]
                     render = create_render(session.privilege)
                     return render.register(message="E-mail address already exists, please try again.")
                 except:
-                    check_email = False
+                    match_email = False
 
-                if not check_email and not check_username:
+                if not match_email and not match_username:
                     try:
                         passwd = hashlib.sha1("sAlT754-"+passwd).hexdigest()
                         add_user = db.insert('game_users', username=name, passwd=passwd, email=email, privilege=0)
@@ -101,8 +103,6 @@ class ForgotPass(object):
 class Index(object):
     def GET(self):
         if logged():
-            # this is used to "setup" the session with starting values
-            session.room = gothon_map.START()
             web.seeother("/game")
         else:
             web.seeother("/login")
@@ -153,9 +153,12 @@ class GameEngine(object):
             web.seeother("/login")
 
 def logged():
-    if session.login == 1:
-        return True
-    else:
+    try:
+        if session.login == 1:
+            return True
+        else:
+            return False
+    except:
         return False
 
 def create_render(privilege):
